@@ -65,3 +65,9 @@ CREATE TABLE access_level (
 ALTER TABLE user RENAME COLUMN access_level to access_level_id;
 
 ALTER TABLE user ADD FOREIGN KEY (access_level_id) REFERENCES access_level(id);
+
+CREATE TABLE access_token (
+	id int NOT NULL AUTO_INCREMENT,
+	token varchar(250) NOT NULL,
+	PRIMARY KEY(id)
+);
