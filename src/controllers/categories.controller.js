@@ -1,8 +1,10 @@
-import { pool } from '../db.js'
+import mysqlConnection from '../db.js'
 
 export const getCategories = async (_, res) => {
 	try {
-		const [categories] = await pool.query('SELECT * FROM category')
+		/*const [categories] = await pool.query('SELECT * FROM category')*/
+		const categories = await mysqlConnection.executeQuery('SELECT * FROM category')
+
 		res.json({
 			data: categories,
 			error: false,

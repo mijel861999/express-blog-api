@@ -1,9 +1,74 @@
-import { pool } from '../db.js'
-import { sendSuccessResponse, sendErrorResponse } from '../responses/responses.js'
+import mysqlConnection from '../db.js'
+import { sendSuccessResponse, sendErrorResponse, sendEmptyResponse } from '../responses/responses.js'
 import { generateToken } from '../helpers/tokens.js'
 import bcrypt from 'bcrypt'
+import PasswordEncryptor from './passwordEncryptor.controller.js'
+import User from '../models/User.js'
 
+class UserController {
+	constructor() {
+		this.passwordEncryptor = new PasswordEncryptor()
+	}
 
+	createUser = async (req, res) => {
+		const { username, password, access_level_id, full_name, phone_number, email } = req.body
+
+		try {
+			const newUser = new User({ username, password, access_level_id, full_name, phone_number, email })
+
+			const rows = newUser.create()
+
+			return sendSuccessResponse(res, "Usuario creado con éxito", {
+				id: rows.insertId,
+				username
+			})
+		} catch(e) {
+			console.log(e)
+			return sendErrorResponse(res, 400, "Error al crear un usuario", e)
+		}
+	}
+
+	async authenticateUser(req, res) {
+		const { username, password } = req.body
+
+		try {
+			const newUser = new User({ username, password })
+
+			const rows = await newUser.authenticate()			
+
+			// Verificar si el usuario existe
+			if (rows.length  === 0) {
+				return sendEmptyResponse(res, "Usuario no encontrado")	
+			}
+
+			const user = rows[0]
+
+			// Verificar si la contraseña coincide
+			const passwordHash = user.password_hash
+			const passwordMatch = await bcrypt.compare(password, passwordHash)
+	
+			if (!passwordMatch) {
+				return sendEmptyResponse(res, "Contraseña incorrecta")	
+			}
+
+			// TODO: enviar token de autenticación
+			const token = generateToken(user)
+			return sendSuccessResponse(res, "Usuario logeado con éxito", {
+				id: user.id,
+				username: user.username,
+				token
+			})
+		}catch(e) {
+			console.log(e)
+			return sendErrorResponse(res, 400, "Usuario no encontrado", e)	
+		}
+	}
+
+}
+
+export default UserController
+
+/*
 export const getUserById = async (req, res) => {
 	const { id } = req.params;
 
@@ -51,7 +116,7 @@ export const authenticateUser = async (req, res) => {
 
 		// Verificar si el usuario existe
 		if (rows.length  === 0) {
-			return sendErrorResponse(res, 400, "Usuario no encontrado")	
+			return sendEmptyResponse(res, "Usuario no encontrado")	
 		}
 
 		const user = rows[0]
@@ -61,7 +126,7 @@ export const authenticateUser = async (req, res) => {
 		const passwordMatch = await bcrypt.compare(password, passwordHash)
 	
 		if (!passwordMatch) {
-			return sendErrorResponse(res, 400, "Contraseña incorrecta")	
+			return sendEmptyResponse(res, "Contraseña incorrecta")	
 		}
 
 		// TODO: enviar token de autenticación
@@ -76,3 +141,5 @@ export const authenticateUser = async (req, res) => {
 		return sendErrorResponse(res, 400, "Usuario no encontrado", e)	
 	}
 }
+
+*/
