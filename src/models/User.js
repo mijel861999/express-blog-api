@@ -28,11 +28,16 @@ class User {
 	}
 
 	async authenticate() {
-		const [rows, _] = await mysqlConnection.executeQuery('SELECT * FROM user WHERE username = ?', [this.username])
+		const [user, _] = await mysqlConnection.executeQuery('SELECT * FROM user WHERE username = ?', [this.username])
 
-		return rows
+		return user
 	}
+	
+	async isGoodPassword(passwordHash) {
+		const passwordMatch = await this.passwordEncryptor.comparePassword(this.password, passwordHash)
 
+		return passwordMatch
+	}
 }
 
 export default User

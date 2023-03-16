@@ -1,7 +1,5 @@
 import { Router } from 'express'
-//import { createUser, getUserById, authenticateUser } from '../controllers/users.controller.js'
 import UserController from '../controllers/users.controller.js'
-import verifyToken from '../middlewares/auth/verifyToken.js'
 
 const userController = new UserController()
 
